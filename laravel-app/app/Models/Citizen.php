@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Citizen extends Model
 {
     use HasFactory;
-
     protected $table = 'citizens';
 
     public $incrementing = false;
