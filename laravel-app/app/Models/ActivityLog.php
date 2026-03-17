@@ -10,6 +10,7 @@ class ActivityLog extends Model
 {
     use HasFactory;
     protected $table = 'activity_log';
+    public const UPDATE_AT = null;
     public $timestamps = false;
     public $incrementing = false;
 
@@ -18,7 +19,7 @@ class ActivityLog extends Model
         'user_id',
         'action',
         'description',
-        'subject_type',
+        'subject_tytpe',
         'subject_id'
     ];
     public function user(): BelongsTo

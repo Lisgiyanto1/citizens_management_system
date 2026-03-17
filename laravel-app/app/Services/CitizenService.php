@@ -2,49 +2,56 @@
 
 namespace App\Services;
 
-use App\Models\Citizen;
+use App\Repositories\CitizenRepository;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class CitizenService
 {
+    protected $citizenRepository;
+
+    public function __construct(CitizenRepository $citizenRepository)
+    {
+        $this->citizenRepository = $citizenRepository;
+    }
+
     public function getAll()
     {
-        return Citizen::with('creator')->paginate(10);
+        return $this->citizenRepository->getAll();
     }
 
     public function getById(string $id)
     {
-        return Citizen::with('creator')->findOrFail($id);
+        return Cache::remember("citizen:{$id}", 3000, function () use ($id) {
+            $this->citizenRepository->findById($id);
+        });
     }
 
     public function create(array $data)
     {
-        try {
-            $data['id'] = Str::uuid();
-            $data['photo'] = 'https://api.dicebear.com/7.x/personas/svg?seed=' . rand();
-            $data['created_by'] = auth()->id();
+        $data['id'] = (string) Str::uuid();
+        $data['photo'] = 'https://api.dicebear.com/7.x/personas/svg?seed=' . rand();
+        $data['created_by'] = auth()->id();
 
-            return Citizen::create($data);
-        } catch (\Exception $e) {
-            dd($e->getMessage());
-        }
-
+        return $this->citizenRepository->create($data);
     }
 
     public function update(string $id, array $data)
     {
-        $citizen = Citizen::findOrFail($id);
+        $citizen = $this->citizenRepository->findById($id);
+        $updatedCitizen = $this->citizenRepository->update($citizen, $data);
 
-        $citizen->update($data);
+        Cache::forget("citizen:{$id}");
 
-        return $citizen;
+        return $updatedCitizen;
     }
 
     public function delete(string $id)
     {
-        $citizen = Citizen::findOrFail($id);
+        $citizen = $this->citizenRepository->findById($id);
+        $this->citizenRepository->delete($citizen);
 
-        $citizen->delete();
+        Cache::forget("citizen:{$id}");
 
         return true;
     }
