@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Citizens\Schemas;
 
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class CitizenForm
@@ -10,25 +11,20 @@ class CitizenForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('nik')
-                ->label('NIK')
-                ->required()
-                ->length(16)
-                ->numeric()
-                ->unique(ignoreRecord: true),
+            Section::make('Informasi Dasar')
+                ->schema([
+                    TextInput::make('nik')->label('NIK')->required()->length(16),
+                    TextInput::make('name')->label('Nama Lengkap')->required(),
+                    TextInput::make('address')->label('Alamat')->required(),
+                ]),
 
-            TextInput::make('name')
-                ->label('Nama Lengkap')
-                ->required()
-                ->maxLength(255),
-
-            TextInput::make('address')
-                ->label('Alamat')
-                ->required(),
-
-            TextInput::make('phone')
-                ->label('No HP')
-                ->tel(),
+            Section::make('Foto')
+                ->schema([
+                    TextInput::make('photo')
+                        ->label('Link Foto (URL)')
+                        ->url() // Validasi bahwa ini harus link URL
+                        ->helperText('Masukkan link foto lengkap (contoh: https://domain.com/foto.jpg)'),
+                ]),
         ]);
     }
 }

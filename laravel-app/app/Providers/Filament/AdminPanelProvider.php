@@ -35,6 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->globalSearch(false)
+            ->databaseNotifications()
             ->colors([
                 'primary' => Color::Amber,
             ])
