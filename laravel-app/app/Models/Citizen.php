@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Observers\CitizenObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,6 +31,11 @@ class Citizen extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public static function getRecordTitle($record): string
+    {
+        return "{$record->name} - {$record->nik}";
     }
 }
 

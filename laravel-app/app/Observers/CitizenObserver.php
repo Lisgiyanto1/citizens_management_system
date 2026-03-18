@@ -7,40 +7,28 @@ use App\Services\ActivityLogService;
 
 class CitizenObserver
 {
-    protected $activityLogService;
 
-    public function __construct(ActivityLogService $activityLogService)
+    protected function log($action, $message, $citizen)
     {
-        $this->activityLogService = $activityLogService;
-    }
-
-    public function created(Citizen $citizen): void
-    {
-        $this->activityLogService->logActivity(
-            'CREATE',
-            "Menambahkan warga baru: {$citizen->name} (NIK: {$citizen->nik})",
+        app(ActivityLogService::class)->logActivity(
+            $action,
+            $message,
             Citizen::class,
             $citizen->id
         );
+    }
+    public function created(Citizen $citizen): void
+    {
+        $this->log('CREATE', "Menambahkan warga baru: {$citizen->name}", $citizen);
     }
 
     public function updated(Citizen $citizen): void
     {
-        $this->activityLogService->logActivity(
-            'UPDATE',
-            "Memperbarui data warga: {$citizen->name}",
-            Citizen::class,
-            $citizen->id
-        );
+        $this->log('UPDATE', "Memperbarui data warga: {$citizen->name}", $citizen->id);
     }
 
     public function deleted(Citizen $citizen): void
     {
-        $this->activityLogService->logActivity(
-            'DELETE',
-            "Menghapus data warga: {$citizen->name}",
-            Citizen::class,
-            $citizen->id
-        );
+        $this->log('DELETE', "Menghapus data warga: {$citizen->name}", $citizen->id);
     }
 }
