@@ -92,11 +92,8 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        // Ambil data user yang sedang login dari token yang dikirim via Header Authorization
         $user = $request->user();
 
-        // --- CATAT LOG AKTIVITAS LOGOUT ---
-        // WAJIB dilakukan sebelum token dihapus agar sistem masih mengenali user-nya
         $this->activityLogService->logActivity(
             'LOGOUT',
             "User {$user->name} berhasil logout dari sistem",
@@ -104,7 +101,6 @@ class AuthController extends Controller
             $user->id
         );
 
-        // Hapus token akses saat ini (Logout dari device/browser ini saja)
         $user->currentAccessToken()->delete();
 
         return response()->json([

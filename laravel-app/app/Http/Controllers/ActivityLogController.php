@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Services\ActivityLogService;
-use App\Http\Resources\ActivityLogResource; // Import Resource
+use App\Http\Resources\ActivityLogResource; 
 
 class ActivityLogController extends Controller
 {

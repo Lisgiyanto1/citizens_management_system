@@ -14,7 +14,6 @@ class CitizenInfolist
         return $schema->schema([
             Section::make('Informasi Penduduk')
                 ->schema([
-                    // Foto tampil dari link utuh di database
                     ImageEntry::make('photo')
                         ->label('Foto Penduduk')
                         ->size(200)

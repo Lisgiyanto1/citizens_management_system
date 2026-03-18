@@ -22,7 +22,7 @@ class CitizenForm
                 ->schema([
                     TextInput::make('photo')
                         ->label('Link Foto (URL)')
-                        ->url() // Validasi bahwa ini harus link URL
+                        ->url()
                         ->helperText('Masukkan link foto lengkap (contoh: https://domain.com/foto.jpg)'),
                 ]),
         ]);
