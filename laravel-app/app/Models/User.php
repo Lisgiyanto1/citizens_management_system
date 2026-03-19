@@ -86,4 +86,19 @@ class User extends Authenticatable
     {
         return $this->role === 'user';
     }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            // Generate UUID jika belum ada
+            if (empty($user->id)) {
+                $user->id = \Illuminate\Support\Str::uuid();
+            }
+
+            // Hanya isi 'user' jika role belum diset (misal: saat daftar via form)
+            if (empty($user->role)) {
+                $user->role = 'user';
+            }
+        });
+    }
 }

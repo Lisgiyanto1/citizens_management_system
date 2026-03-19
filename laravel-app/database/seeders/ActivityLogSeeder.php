@@ -27,7 +27,7 @@ class ActivityLogSeeder extends Seeder
                     'user_id' => $user->id,
                     'action' => 'VIEW_CITIZEN',
                     'description' => 'User melihat data citizen',
-                    'subject_tytpe' => 'Citizen',
+                    'subject_type' => 'Citizen',
                     'subject_id' => BigInteger::of($i)->toString()
                 ]);
             }

@@ -2,49 +2,62 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\TableWidget;
-use Filament\Tables\Columns\TextColumn;
 use App\Models\ActivityLog;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Filament\Widgets\TableWidget as BaseWidget;
 
-class LatestActivities extends TableWidget
+class LatestActivities extends BaseWidget
 {
+    // Heading untuk widget
     protected static ?string $heading = 'Latest Activities';
 
+    // Widget span full width
     protected int|string|array $columnSpan = 'full';
 
-    protected function getTableQuery(): \Illuminate\Database\Eloquent\Builder
+    public function table(Table $table): Table
     {
-        return ActivityLog::query()
-            ->select(['id', 'user_id', 'action', 'description', 'created_at'])
-            ->latest()
-            ->limit(5);
+        return $table
+            // 1. Query selalu mengambil data terbaru (limit 5)
+            ->query(
+                ActivityLog::query()->latest()->limit(5)
+            )
+            // 2. Mengaktifkan polling langsung di sini agar re-render setiap 5 detik
+            ->poll('5s')
+            ->columns([
+                TextColumn::make('created_at')
+                    ->label('Time')
+                    ->dateTime('H:i:s')
+                    ->sortable(),
+
+                TextColumn::make('user_id')
+                    ->label('User ID')
+                    ->limit(10),
+
+                TextColumn::make('action')
+                    ->label('Action')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'CREATE', 'INSERT' => 'success',
+                        'UPDATE' => 'warning',
+                        'DELETE' => 'danger',
+                        default => 'gray',
+                    }),
+
+                TextColumn::make('description')
+                    ->label('Description')
+                    ->limit(50),
+            ])
+            // 3. Matikan paginasi agar tidak ada state page yang nyangkut di cache
+            ->paginated(false);
     }
 
-
-    protected function getTableColumns(): array
+    /**
+     * Memaksa Livewire untuk selalu menganggap komponen ini segar
+     * dengan memberikan timestamp unik setiap kali komponen dimuat ulang.
+     */
+    public function getKey(): string
     {
-        return [
-            TextColumn::make('id')
-                ->label('ID')
-                ->sortable(),
-
-            TextColumn::make('user_id')
-                ->label('User ID')
-                ->sortable(),
-
-            TextColumn::make('action')
-                ->label('Action')
-                ->sortable(),
-
-            TextColumn::make('description')
-                ->label('Description')
-                ->limit(50) 
-                ->placeholder('Not Found Recent Action'),
-
-            TextColumn::make('created_at')
-                ->label('Created At')
-                ->dateTime('d M Y H:i')
-                ->sortable(),
-        ];
+        return 'latest-activities-' . now()->timestamp;
     }
 }

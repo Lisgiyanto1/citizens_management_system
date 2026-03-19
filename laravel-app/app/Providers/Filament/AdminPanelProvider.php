@@ -10,10 +10,8 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 
-// Tambahkan widget baru
+
 use App\Filament\Widgets\LatestActivities;
 use App\Filament\Widgets\ActivityChart;
 use App\Filament\Widgets\ActiveUsers;
@@ -34,6 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->registration()
             ->globalSearch(false)
             ->databaseNotifications()
             ->colors([

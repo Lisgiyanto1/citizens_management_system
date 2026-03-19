@@ -24,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e) {
+            return redirect()->route('filament.admin.auth.login');
+        });
     })->create();

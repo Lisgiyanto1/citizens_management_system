@@ -28,15 +28,15 @@ class ProcessActivityLog implements ShouldQueue
         $this->subjectId = $subjectId;
     }
 
-    // Fungsi ini akan dieksekusi oleh Redis di latar belakang
-    public function handle(ActivityLogRepository $repository): void
+    public function handle(): void
     {
-        $repository->create([
+        \App\Models\ActivityLog::create([
             'user_id' => $this->userId,
             'action' => $this->action,
             'description' => $this->description,
-            'subject_tytpe' => $this->subjectType, // Mengikuti ejaan DB Anda
+            'subject_type' => $this->subjectType,
             'subject_id' => $this->subjectId,
+            'created_at' => now(),
         ]);
     }
 }

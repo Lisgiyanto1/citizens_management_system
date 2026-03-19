@@ -4,15 +4,22 @@ namespace App\Filament\Widgets;
 
 use Filament\Widgets\ChartWidget;
 use App\Models\ActivityLog;
-use Illuminate\Support\Collection;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class ActivityChart extends ChartWidget
 {
-    protected ?string $heading = 'Activity Chart';
+    // 1. Polling: Memaksa widget me-refresh data setiap 5 detik
+    protected ?string $pollingInterval = '5s';
 
+    protected  ?string $heading = 'Activity Chart (10 Menit Terakhir)';
 
+    // Memberikan lebar yang sama dengan widget lainnya
     protected int|array|string $columnSpan = 1;
+
+    public static function canView(): bool
+    {
+        return Auth::user()?->isAdmin() ?? false;
+    }
 
     protected function getType(): string
     {
@@ -21,51 +28,65 @@ class ActivityChart extends ChartWidget
 
     protected function getData(): array
     {
-        $types = ['POST', 'GET', 'PUT', 'DELETE', 'PATCH'];
-
+        // 2. Mengambil log 10 menit terakhir saja agar selalu fresh dan bergerak
         $logs = ActivityLog::query()
-            ->orderByDesc('created_at')
-            ->limit(5)
-            ->get(); 
+            ->where('created_at', '>=', now()->subMinutes(10))
+            ->orderBy('created_at', 'asc')
+            ->get();
 
+        // 3. Jika tidak ada log, tampilkan data kosong agar grafik tidak error
         if ($logs->isEmpty()) {
             return [
-                'labels' => ['No recent actions'],
+                'labels' => ['No activity'],
                 'datasets' => [
                     [
-                        'label' => 'Actions',
+                        'label' => 'Total Aktivitas',
                         'data' => [0],
+                        'borderColor' => '#3b82f6',
+                        'backgroundColor' => 'rgba(59, 130, 246, 0.2)',
+                        'fill' => true,
                     ],
                 ],
             ];
         }
 
-        $labels = [];
-        $data = [];
-        foreach ($types as $type) {
-            $data[$type] = [];
-        }
+        // 4. Kelompokkan log berdasarkan menit (H:i)
+        $groups = $logs->groupBy(fn($log) => $log->created_at->format('H:i'));
 
-        foreach ($logs as $log) {
-            $timestamp = $log->created_at->format('H:i:s'); 
-            $labels[] = $timestamp;
+        $labels = $groups->keys()->toArray();
 
-            foreach ($types as $type) {
-                $data[$type][] = $log->action === $type ? 1 : 0;
-            }
-        }
-
-        $datasets = [];
-        foreach ($types as $type) {
-            $datasets[] = [
-                'label' => $type,
-                'data' => $data[$type],
-            ];
-        }
+        // Hitung total aksi yang terjadi pada setiap menit tersebut
+        $data = $groups->map(fn($group) => $group->count())->values()->toArray();
 
         return [
+            'datasets' => [
+                [
+                    'label' => 'Jumlah Aksi',
+                    'data' => $data,
+                    'borderColor' => '#3b82f6',
+                    'backgroundColor' => 'rgba(59, 130, 246, 0.2)',
+                    'fill' => true,
+                    'tension' => 0.4, // Membuat garis lebih halus/melengkung
+                ],
+            ],
             'labels' => $labels,
-            'datasets' => $datasets,
+        ];
+    }
+
+    /**
+     * Opsi tambahan untuk mempercantik tampilan Chart
+     */
+    protected function getOptions(): array
+    {
+        return [
+            'scales' => [
+                'y' => [
+                    'beginAtZero' => true,
+                    'ticks' => [
+                        'stepSize' => 1, // Agar angka Y selalu integer
+                    ],
+                ],
+            ],
         ];
     }
 }

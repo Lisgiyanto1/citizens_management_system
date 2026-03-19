@@ -26,7 +26,9 @@ class CitizensTable
 
             ->headerActions([
                 ImportAction::make()
-                    ->importer(CitizenImporter::class),
+                    ->importer(CitizenImporter::class)
+                    ->visible(fn()=>auth()->user()?->isAdmin())
+                    ,
                 ExportAction::make()
                     ->exporter(CitizenExporter::class),
             ])

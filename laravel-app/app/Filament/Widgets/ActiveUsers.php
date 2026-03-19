@@ -2,36 +2,67 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Widgets\ChartWidget;
 use App\Models\ActivityLog;
-use Illuminate\Support\HtmlString; // Tambahkan ini
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
-class ActiveUsers extends BaseWidget
+class ActiveUsers extends ChartWidget
 {
-    public function getColumnSpan(): int|string|array
+    protected ?string $heading = 'Active Users: Admin vs User';
+
+    // columnSpan = 1 akan membuat lebarnya sama dengan ActivityChart
+    protected int|string|array $columnSpan = 1;
+
+    // Menentukan jenis chart
+    protected function getType(): string
     {
-        return 1;
+        return 'doughnut';
     }
 
-    protected function getStats(): array
+    public static function canView(): bool
+    {
+        return Auth::user()?->isAdmin() ?? false;
+    }
+
+    protected function getData(): array
     {
         $today = now()->startOfDay();
-        $activeUsersCount = ActivityLog::where('created_at', '>=', $today)
+
+        // Ambil ID user unik yang aktif hari ini
+        $activeUserIds = ActivityLog::where('created_at', '>=', $today)
             ->distinct('user_id')
-            ->count('user_id');
+            ->pluck('user_id');
+
+        // Hitung proporsi
+        $adminCount = User::whereIn('id', $activeUserIds)->where('role', 'admin')->count();
+        $userCount = User::whereIn('id', $activeUserIds)->where('role', 'user')->count();
 
         return [
-            Stat::make('Active Users Today', $activeUsersCount)
-                ->description(new HtmlString('
-                    <div style="border-top: 1px solid #e5e7eb; margin-top: 8px; padding-top: 8px;">
-                        Jumlah user yang melakukan aktivitas hari ini
-                    </div>
-                '))
-                ->descriptionIcon('heroicon-o-user-group')
-                ->extraAttributes([
-                    'class' => 'h-full',
-                ]),
+            'datasets' => [
+                [
+                    'label' => 'Active Users',
+                    'data' => [$adminCount, $userCount],
+                    'backgroundColor' => [
+                        '#f59e0b', // Amber (Admin)
+                        '#3b82f6', // Blue (User)
+                    ],
+                ],
+            ],
+            'labels' => ['Admin', 'User'],
+        ];
+    }
+
+    // Opsi tambahan agar chart tidak terlalu besar/tinggi
+    protected function getOptions(): array
+    {
+        return [
+            'plugins' => [
+                'legend' => [
+                    'display' => true,
+                    'position' => 'bottom',
+                ],
+            ],
         ];
     }
 }

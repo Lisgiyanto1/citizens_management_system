@@ -37,6 +37,18 @@ class Citizen extends Model
     {
         return "{$record->name} - {$record->nik}";
     }
+
+
+    public $timestamps = true;
+
+    protected static function booted(): void
+    {
+        static::creating(function ($citizen) {
+            if (auth()->check()) {
+                $citizen->created_by = auth()->id();
+            }
+        });
+    }
 }
 
 
